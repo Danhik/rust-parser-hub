@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Parser Hub — Steam Marketplace</title>
+  <meta name="description" content="Единая панель управления парсерами Steam: swap.gg, Skinswap, Tradeit"/>
+  <link rel="stylesheet" href="/static/styles.css"/>
+</head>
+<body>
+<div class="app-wrapper">
+
+  <!-- ══ HEADER ══ -->
+  <header class="topbar">
+    <div class="logo">
+      <div class="logo-icon">⚡</div>
+      <div class="logo-text">Parser<span>Hub</span></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('parsers')"  id="tab-btn-parsers"  style="border-color:var(--blue);color:var(--blue);">Парсеры</button>
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('links')"    id="tab-btn-links">Связки</button>
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('profiles')" id="tab-btn-profiles">Chrome профили</button>
+      <button class="btn btn-ghost btn-sm" onclick="switchTab('settings')" id="tab-btn-settings">⚙ Настройки</button>
+      <div class="topbar-status"><div class="status-dot"></div><span>Подключено</span></div>
+    </div>
+  </header>
+
+  <!-- ══════════════════════════════════════════
+       TAB 1: PARSERS
+  ══════════════════════════════════════════ -->
+  <section id="tab-parsers">
+    <div class="section-header">
+      <h1 class="section-title">Парсеры площадок</h1>
+      <span class="section-badge badge-blue">Запуск и сбор данных</span>
+    </div>
+    <!-- Type legend -->
+    <div style="display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap;">
+      <span style="font-size:0.78rem;padding:4px 12px;border-radius:20px;background:rgba(79,140,255,0.1);border:1px solid rgba(79,140,255,0.25);color:var(--blue);">
+        📦 Инвентарь сайта — площадка ОТДАЁТ (источник для связок)
+      </span>
+      <span style="font-size:0.78rem;padding:4px 12px;border-radius:20px;background:rgba(59,224,138,0.1);border:1px solid rgba(59,224,138,0.25);color:var(--green);">
+        👤 Инвентарь пользователя — площадка ПРИНИМАЕТ (цель для связок)
+      </span>
+    </div>
+    <div class="parsers-grid" id="parsers-grid">
+
+      <!-- ── STEAM MARKET (site) ── -->
+      <div class="parser-card glass" style="--accent:#4f8cff">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#1b2838,#2a475e);font-size:18px;">🎮</div>
+            <div>
+              <div class="card-label">Steam Market</div>
+              <div class="card-sublabel" style="color:var(--blue);">📦 Цены — площадка отдаёт</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-steam_market">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Прокси</span>
+            <select class="field-select" id="steam_market-proxies"></select></div>
+          <div class="field-row"><span class="field-label">App ID</span>
+            <input class="field-input" id="steam_market-appid" type="text" value="252490"/></div>
+          <div class="field-row"><span class="field-label">Потоков</span>
+            <input class="field-input" id="steam_market-workers" type="number" value="4" min="1"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="steam_market-out" type="text" value="steam_market.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="steam_market-verbose"/>
+            <label for="steam_market-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('steam_market')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('steam_market')">Лог</button>
+        </div>
+        <div class="card-log" id="log-steam_market"></div>
+      </div>
+
+      <!-- ── STEAM PRICEOVERVIEW (site) ── -->
+      <div class="parser-card glass" style="--accent:#4f8cff">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#1b2838,#2a475e);font-size:15px;">📊</div>
+            <div>
+              <div class="card-label">Steam PriceOverview</div>
+              <div class="card-sublabel" style="color:var(--blue);">📦 Быстрые цены по именам</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-steam_priceoverview">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Names файл</span>
+            <input class="field-input" id="steam_priceoverview-names" type="text" value="names.txt"/></div>
+          <div class="field-row"><span class="field-label">Прокси</span>
+            <select class="field-select" id="steam_priceoverview-proxies"></select></div>
+          <div class="field-row"><span class="field-label">Потоков</span>
+            <input class="field-input" id="steam_priceoverview-workers" type="number" value="20" min="1"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="steam_priceoverview-out" type="text" value="steam_priceoverview.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="steam_priceoverview-verbose"/>
+            <label for="steam_priceoverview-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('steam_priceoverview')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('steam_priceoverview')">Лог</button>
+        </div>
+        <div class="card-log" id="log-steam_priceoverview"></div>
+      </div>
+
+      <!-- ── SWAP.GG SITE ── -->
+      <div class="parser-card glass" style="--accent:#a78bfa">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#2d1b69,#4c3080);font-size:13px;font-weight:700;color:#a78bfa;">SWP</div>
+            <div>
+              <div class="card-label">swap.gg — Сайт</div>
+              <div class="card-sublabel" style="color:var(--blue);">📦 Площадка отдаёт (Selenium)</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-swapgg_site">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Chrome</span>
+            <select class="field-select" id="swapgg_site-user_data_dir"></select></div>
+          <div class="field-row"><span class="field-label">Макс. предм.</span>
+            <input class="field-input" id="swapgg_site-max_items" type="number" value="0" min="0"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="swapgg_site-out" type="text" value="swapgg_site.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="swapgg_site-verbose"/>
+            <label for="swapgg_site-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('swapgg_site')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('swapgg_site')">Лог</button>
+        </div>
+        <div class="card-log" id="log-swapgg_site"></div>
+      </div>
+
+      <!-- ── SWAP.GG USER ── -->
+      <div class="parser-card glass" style="--accent:#3be08a">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#2d1b69,#4c3080);font-size:13px;font-weight:700;color:#c4b5fd;">SWP</div>
+            <div>
+              <div class="card-label">swap.gg — Инвентарь</div>
+              <div class="card-sublabel" style="color:var(--green);">👤 Площадка принимает</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-swapgg_user">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Chrome</span>
+            <select class="field-select" id="swapgg_user-user_data_dir"></select></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="swapgg_user-out" type="text" value="swapgg_user.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="swapgg_user-verbose"/>
+            <label for="swapgg_user-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('swapgg_user')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('swapgg_user')">Лог</button>
+        </div>
+        <div class="card-log" id="log-swapgg_user"></div>
+      </div>
+
+      <!-- ── SKINSWAP SITE ── -->
+      <div class="parser-card glass" style="--accent:#ffc845">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#2a1f00,#4a3800);font-size:13px;font-weight:700;color:#ffc845;">SKS</div>
+            <div>
+              <div class="card-label">Skinswap — Сайт</div>
+              <div class="card-sublabel" style="color:var(--blue);">📦 Площадка отдаёт (Playwright)</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-skinswap_site">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Chrome</span>
+            <select class="field-select" id="skinswap_site-user_data_dir"></select></div>
+          <div class="field-row"><span class="field-label">Макс. предм.</span>
+            <input class="field-input" id="skinswap_site-max_items" type="number" value="0" min="0"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="skinswap_site-out" type="text" value="skinswap_site.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="skinswap_site-verbose"/>
+            <label for="skinswap_site-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('skinswap_site')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('skinswap_site')">Лог</button>
+        </div>
+        <div class="card-log" id="log-skinswap_site"></div>
+      </div>
+
+      <!-- ── SKINSWAP USER ── -->
+      <div class="parser-card glass" style="--accent:#3be08a">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#2a1f00,#4a3800);font-size:13px;font-weight:700;color:#ffd87a;">SKS</div>
+            <div>
+              <div class="card-label">Skinswap — Инвентарь</div>
+              <div class="card-sublabel" style="color:var(--green);">👤 Площадка принимает</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-skinswap_user">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Профиль</span>
+            <div style="display:flex;gap:6px;flex:1;">
+              <select class="field-select" id="skinswap_user-user_profile" style="flex:1;"></select>
+              <input class="field-input" id="skinswap_user-user_profile-custom" type="text" placeholder="новый..." style="flex:1;display:none;"/>
+              <button class="btn btn-ghost btn-sm" onclick="toggleCustomProfile('skinswap_user')" title="Ввести вручную">✎</button>
+            </div>
+          </div>
+          <div class="field-row"><span class="field-label">Потоков</span>
+            <input class="field-input" id="skinswap_user-workers" type="number" value="3" min="1"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="skinswap_user-out" type="text" value="skinswap_user.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="skinswap_user-accepted_only"/>
+            <label for="skinswap_user-accepted_only">Только принимаемые</label>
+            &nbsp;&nbsp;
+            <input type="checkbox" id="skinswap_user-verbose"/>
+            <label for="skinswap_user-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('skinswap_user')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('skinswap_user')">Лог</button>
+        </div>
+        <div class="card-log" id="log-skinswap_user"></div>
+      </div>
+
+      <!-- ── TRADEIT SITE ── -->
+      <div class="parser-card glass" style="--accent:#4f8cff">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#0a2e1a,#163d24);font-size:13px;font-weight:700;color:#3be08a;">TRT</div>
+            <div>
+              <div class="card-label">Tradeit — Сайт</div>
+              <div class="card-sublabel" style="color:var(--blue);">📦 Площадка отдаёт (API)</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-tradeit_site">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Game ID</span>
+            <input class="field-input" id="tradeit_site-game_id" type="text" value="252490"/></div>
+          <div class="field-row"><span class="field-label">Прокси</span>
+            <select class="field-select" id="tradeit_site-proxies"></select></div>
+          <div class="field-row"><span class="field-label">Потоков</span>
+            <input class="field-input" id="tradeit_site-workers" type="number" value="5" min="1"/></div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="tradeit_site-out" type="text" value="tradeit_site.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="tradeit_site-verbose"/>
+            <label for="tradeit_site-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('tradeit_site')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('tradeit_site')">Лог</button>
+        </div>
+        <div class="card-log" id="log-tradeit_site"></div>
+      </div>
+
+      <!-- ── TRADEIT USER ── -->
+      <div class="parser-card glass" style="--accent:#3be08a">
+        <div class="card-head">
+          <div class="card-info">
+            <div class="platform-icon" style="background:linear-gradient(135deg,#0a2e1a,#163d24);font-size:13px;font-weight:700;color:#6efcb4;">TRT</div>
+            <div>
+              <div class="card-label">Tradeit — Инвентарь</div>
+              <div class="card-sublabel" style="color:var(--green);">👤 Площадка принимает</div>
+            </div>
+          </div>
+          <span class="status-pill status-idle" id="status-tradeit_user">Ожидание</span>
+        </div>
+        <div class="card-fields">
+          <div class="field-row"><span class="field-label">Game ID</span>
+            <input class="field-input" id="tradeit_user-game_id" type="text" value="252490"/></div>
+          <div class="field-row"><span class="field-label">Профиль</span>
+            <div style="display:flex;gap:6px;flex:1;">
+              <select class="field-select" id="tradeit_user-user_profile" style="flex:1;"></select>
+              <input class="field-input" id="tradeit_user-user_profile-custom" type="text" placeholder="новый..." style="flex:1;display:none;"/>
+              <button class="btn btn-ghost btn-sm" onclick="toggleCustomProfile('tradeit_user')" title="Ввести вручную">✎</button>
+            </div>
+          </div>
+          <div class="field-row"><span class="field-label">Файл</span>
+            <input class="field-input" id="tradeit_user-out" type="text" value="tradeit_user.xlsx"/></div>
+          <div class="checkbox-row">
+            <input type="checkbox" id="tradeit_user-verbose"/>
+            <label for="tradeit_user-verbose">Verbose</label>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="btn btn-primary" onclick="runParser('tradeit_user')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" onclick="toggleLog('tradeit_user')">Лог</button>
+        </div>
+        <div class="card-log" id="log-tradeit_user"></div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       TAB 2: LINKS BUILDER
+  ══════════════════════════════════════════ -->
+  <section id="tab-links" style="display:none;">
+    <div class="section-header">
+      <h2 class="section-title">Построение связок</h2>
+      <span class="section-badge badge-gold">Анализ прибыли между площадками</span>
+    </div>
+
+    <!-- Explanation -->
+    <div class="glass" style="padding:16px 20px;margin-bottom:16px;font-size:0.82rem;line-height:1.7;color:var(--text-muted);">
+      <strong style="color:var(--text);">Как работает:</strong>
+      Выберите <span style="color:var(--blue);">откуда берём предмет</span> (инвентарь сайта — цена по которой площадка продаёт/отдаёт)
+      и <span style="color:var(--green);">куда несём</span> (инвентарь пользователя — цена по которой другая площадка принимает от тебя).
+      Прибыль = цена принятия − цена покупки.
+    </div>
+
+    <!-- Files list -->
+    <div class="files-panel glass">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">📁 Доступные Excel файлы</span>
+        <button class="btn btn-ghost btn-sm" onclick="refreshFiles()">↻ Обновить</button>
+      </div>
+      <div class="files-list" id="files-list">
+        <span style="color:var(--text-dim);font-size:0.78rem;">Загрузка...</span>
+      </div>
+    </div>
+
+    <!-- Config panels -->
+    <div class="links-config">
+      <div class="config-panel glass">
+        <div class="config-panel-title"><span style="color:var(--blue);">📦</span> Откуда (площадка отдаёт)</div>
+        <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">Инвентарь сайта — по этой цене ты покупаешь / берёшь предмет</p>
+        <div class="param-group">
+          <label class="param-label">Excel файл источника</label>
+          <select class="field-select" id="source-file" style="padding:8px 11px;width:100%;"></select>
+        </div>
+        <div class="param-group" style="margin-top:10px;">
+          <label class="param-label">Коэффициент покупки (× к цене)</label>
+          <input class="param-input" id="source-coeff" type="number" value="1.00" step="0.01" min="0.01" max="5"/>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-dim);margin-top:6px;">1.0 = без наценки. Пример: 1.05 — если есть доп. комиссия при покупке</p>
+      </div>
+
+      <div class="config-panel glass">
+        <div class="config-panel-title"><span style="color:var(--green);">👤</span> Куда (площадка принимает)</div>
+        <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">Инвентарь пользователя — по этой цене площадка берёт предмет у тебя</p>
+        <div class="param-group">
+          <label class="param-label">Excel файл назначения</label>
+          <select class="field-select" id="dest-file" style="padding:8px 11px;width:100%;"></select>
+        </div>
+        <div class="param-group" style="margin-top:10px;">
+          <label class="param-label">Коэффициент принятия (× к цене)</label>
+          <input class="param-input" id="dest-coeff" type="number" value="1.00" step="0.01" min="0.01" max="5"/>
+        </div>
+        <p style="font-size:0.72rem;color:var(--text-dim);margin-top:6px;">1.0 = берут по полной цене. Пример: 0.95 — если есть скрытый вычет</p>
+      </div>
+    </div>
+
+    <!-- Filter params -->
+    <div class="links-params glass">
+      <div class="params-row">
+        <div class="param-group">
+          <label class="param-label">Мин. прибыль</label>
+          <input class="param-input" id="min-profit" type="number" value="0" step="0.01"/>
+        </div>
+        <div class="param-group">
+          <label class="param-label">Мин. ROI %</label>
+          <input class="param-input" id="min-roi" type="number" value="0" step="1"/>
+        </div>
+        <div class="param-group">
+          <label class="param-label">Имя выходного файла</label>
+          <input class="param-input" id="links-out" type="text" value="links_result.xlsx"/>
+        </div>
+        <div class="param-group" style="flex-direction:row;align-items:flex-end;gap:8px;">
+          <button class="btn btn-gold btn-lg" id="build-btn" onclick="buildLinks()">⚡ Построить связки</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div class="results-panel glass" id="results-panel" style="display:none;">
+      <div class="results-meta" id="results-meta"></div>
+      <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" id="download-links-btn" onclick="downloadLinks()" style="display:none;">⬇ Скачать Excel</button>
+        <span style="font-size:0.76rem;color:var(--text-dim);align-self:center;">Клик по заголовку — сортировка</span>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="links-table">
+          <thead>
+            <tr>
+              <th onclick="sortTable('name')">Название предмета</th>
+              <th onclick="sortTable('source_price')" style="color:var(--blue)">📦 Цена покупки (отдаёт)</th>
+              <th onclick="sortTable('dest_price')"   style="color:var(--green)">👤 Цена принятия (берёт)</th>
+              <th onclick="sortTable('source_eff')">Покупка с коэфф.</th>
+              <th onclick="sortTable('dest_eff')">Принятие с коэфф.</th>
+              <th onclick="sortTable('profit')">Прибыль</th>
+              <th onclick="sortTable('roi')">ROI %</th>
+            </tr>
+          </thead>
+          <tbody id="links-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+    <div id="links-empty" style="display:none;">
+      <div class="empty-state glass" style="margin-top:0;">
+        <div class="empty-icon">🔍</div>
+        <p>Нет совпадений под фильтры.<br/>Снизьте мин. прибыль или ROI.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       TAB 3: CHROME PROFILES
+  ══════════════════════════════════════════ -->
+  <section id="tab-profiles" style="display:none;">
+    <div class="section-header">
+      <h2 class="section-title">Chrome профили</h2>
+      <span class="section-badge badge-blue">Управление браузерными сессиями</span>
+    </div>
+
+    <div class="glass" style="padding:20px;margin-bottom:20px;">
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:14px;text-transform:uppercase;letter-spacing:0.5px;">
+        Создать новый профиль
+      </div>
+      <p style="font-size:0.78rem;color:var(--text-dim);margin-bottom:14px;">
+        Профиль создаётся как пустая папка. При первом запуске парсера с этим профилем Chrome создаст в ней свою структуру данных и сохранит cookies/авторизацию.
+      </p>
+      <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+        <div class="param-group" style="flex:1;min-width:200px;">
+          <label class="param-label">Название профиля</label>
+          <input class="param-input" id="new-profile-name" type="text" placeholder="например: swapgg_main" maxlength="40"/>
+        </div>
+        <button class="btn btn-primary" onclick="createChromeProfile()">+ Создать профиль</button>
+      </div>
+      <p style="font-size:0.71rem;color:var(--text-dim);margin-top:8px;">Допустимы: буквы, цифры, дефис, подчёркивание</p>
+    </div>
+
+    <!-- Existing profiles list -->
+    <div class="glass" style="padding:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+        <span style="font-size:0.85rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:0.5px;">Существующие профили</span>
+        <button class="btn btn-ghost btn-sm" onclick="refreshChromeProfiles()">↻ Обновить</button>
+      </div>
+      <div id="chrome-profiles-list">
+        <span style="color:var(--text-dim);font-size:0.82rem;">Загрузка...</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════
+       TAB 4: SETTINGS
+  ══════════════════════════════════════════ -->
+  <section id="tab-settings" style="display:none;">
+    <div class="section-header">
+      <h2 class="section-title">Настройки</h2>
+      <span class="section-badge badge-blue">Глобальные параметры</span>
+    </div>
+
+    <div class="glass" style="padding:24px;margin-bottom:20px;">
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:20px;">
+        <div class="param-group">
+          <label class="param-label">Файл прокси по умолчанию</label>
+          <select class="field-select" id="cfg-proxies" style="padding:8px 10px;"></select>
+        </div>
+        <div class="param-group">
+          <label class="param-label">Файл names.txt (PriceOverview)</label>
+          <input class="param-input" id="cfg-names" type="text" value="names.txt"/>
+        </div>
+        <div class="param-group">
+          <label class="param-label">App ID / Game ID по умолчанию</label>
+          <input class="param-input" id="cfg-appid" type="text" value="252490"/>
+        </div>
+      </div>
+      <button class="btn btn-primary" onclick="saveConfig()">💾 Сохранить настройки</button>
+    </div>
+
+    <!-- SDA profiles -->
+    <div class="glass" style="padding:20px;" id="sda-section">
+      <div style="font-size:0.85rem;font-weight:600;color:var(--text-muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.5px;">🔑 SDA профили (.maFile)</div>
+      <div id="sda-list" class="files-list"><span style="color:var(--text-dim);font-size:0.78rem;">Не найдено</span></div>
+    </div>
+  </section>
+
+</div><!-- /app-wrapper -->
+
+<div id="toast-container"></div>
+<script src="/static/app.js"></script>
+</body>
+</html>

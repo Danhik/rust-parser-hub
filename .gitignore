@@ -1,0 +1,28 @@
+# Python cache
+__pycache__/
+*.pyc
+
+# Local data & outputs
+data/
+*.xlsx
+
+# Chrome and Selenium profiles (contains local cookies and history)
+chrome_profiles/
+
+# Sensitive Steam / SDA keys (DO NOT COMMIT!)
+sda_profiles/
+*.maFile
+
+# Local sessions (cookies for Tradeit/Skinswap)
+parsers/*_session_*.json
+
+# Proxy lists (contains usernames/passwords)
+parsers/proxies.txt
+parsers/*.txt
+
+# Local configuration
+config.json
+
+# IDE config
+.vscode/
+.idea/

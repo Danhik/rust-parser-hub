@@ -1,0 +1,11 @@
+flask
+openpyxl
+requests
+beautifulsoup4
+lxml
+selenium
+selenium-wire
+cryptography==41.0.7
+pyOpenSSL==23.2.0
+playwright
+undetected-chromedriver

@@ -6,6 +6,10 @@ __pycache__/
 data/
 *.xlsx
 
+# External CSV catalogs (personal price lists — do not commit)
+# Create this folder manually: mkdir external_data
+external_data/
+
 # Chrome and Selenium profiles (contains local cookies and history)
 chrome_profiles/
 

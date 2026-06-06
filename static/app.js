@@ -10,13 +10,16 @@ let sortCol          = 'profit';
 let sortDir          = 'desc';
 let currentLinksFile = null;
 let scanData = { chrome_profiles:[], session_profiles:{}, sda_profiles:[], proxy_files:[] };
+let externalFiles    = [];  // CSV files from external_data/
 
 // ── Init ───────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await loadScanData();
   await loadConfig();
+  await loadExternalFiles();
   refreshFiles();
   setInterval(refreshFiles, 8000);
+  setInterval(loadExternalFiles, 15000);
 });
 
 // ── Tab switching ───────────────────────────────────────────
@@ -232,6 +235,31 @@ function toggleLog(parserId) {
   document.getElementById(`log-${parserId}`).classList.toggle('visible');
 }
 
+// ── External CSV Files ──────────────────────────────────────
+async function loadExternalFiles() {
+  try {
+    const res = await fetch('/api/list-external-files');
+    externalFiles = await res.json();
+    _refreshLinksSelects();
+    _renderExternalFilesList();
+  } catch(e) { console.warn('external files load failed', e); }
+}
+
+function _renderExternalFilesList() {
+  const el = document.getElementById('external-files-list');
+  if (!el) return;
+  if (!externalFiles || !externalFiles.length) {
+    el.innerHTML = '<span style="color:var(--text-dim);font-size:0.78rem;">Нет CSV файлов в external_data/</span>';
+    return;
+  }
+  el.innerHTML = externalFiles.map(f => `
+    <div class="file-chip" style="border-color:rgba(59,224,138,0.3);">
+      📂 <span style="color:var(--green);">${escHtml(f.name)}</span>
+      <span class="file-size">${formatBytes(f.size)}</span>
+    </div>
+  `).join('');
+}
+
 // ── Files ───────────────────────────────────────────────────
 async function refreshFiles() {
   try {
@@ -263,14 +291,48 @@ function renderFilesList(files) {
 }
 
 function updateFileSelects(files) {
+  _refreshLinksSelects(files);
+}
+
+function _refreshLinksSelects(xlsxFiles) {
+  // xlsxFiles may be undefined on first call from loadExternalFiles()
+  // In that case we just rebuild with whatever externalFiles has.
+  // We always use the latest DOM values for xlsx list.
   ['source-file','dest-file'].forEach(id => {
     const el = document.getElementById(id);
     if (!el) return;
     const prev = el.value;
-    el.innerHTML = '<option value="">— выберите файл —</option>' +
-      files.map(f => `<option value="${f.name}">${escHtml(f.name)}</option>`).join('');
-    if (prev && files.some(f => f.name === prev)) el.value = prev;
+
+    let html = '<option value="">— выберите файл —</option>';
+
+    // Group 1: Excel files from data/
+    const xFiles = xlsxFiles ?? _getCurrentXlsxOptions(el);
+    if (xFiles && xFiles.length) {
+      html += '<optgroup label="📊 Парсеры (xlsx)">' +
+        xFiles.map(f => `<option value="${f.name}">${escHtml(f.name)}</option>`).join('') +
+        '</optgroup>';
+    }
+
+    // Group 2: External CSV files
+    if (externalFiles && externalFiles.length) {
+      html += '<optgroup label="📂 Внешние данные (csv)">' +
+        externalFiles.map(f => `<option value="${f.name}" style="color:var(--accent)">[CSV] ${escHtml(f.name)}</option>`).join('') +
+        '</optgroup>';
+    }
+
+    el.innerHTML = html;
+    if (prev && el.querySelector(`option[value="${CSS.escape(prev)}"]`)) el.value = prev;
   });
+}
+
+/** Read current xlsx options from a select (preserves them during external-only refresh). */
+function _getCurrentXlsxOptions(el) {
+  const result = [];
+  el.querySelectorAll('option[value]').forEach(opt => {
+    const v = opt.value;
+    if (v && v.endsWith('.xlsx')) result.push({ name: v });
+  });
+  return result;
 }
 
 // ── Run parser ──────────────────────────────────────────────
@@ -366,12 +428,32 @@ function startPolling(parserId, taskId) {
   }, 1000);
 }
 
-const STATUS_LABELS = { idle:'Ожидание', running:'Запущен', done:'Готово', error:'Ошибка' };
+// ── Cancel parser ────────────────────────────────────────────
+async function cancelParser(parserId) {
+  const taskId = activeTasks[parserId];
+  if (!taskId) { showToast('Нет активной задачи для отмены', 'info'); return; }
+  try {
+    await fetch(`/api/cancel-task/${taskId}`, { method: 'POST' });
+    if (taskPollers[parserId]) { clearInterval(taskPollers[parserId]); delete taskPollers[parserId]; }
+    delete activeTasks[parserId];
+    setStatus(parserId, 'cancelled');
+    appendLog(parserId, '⏹ Парсер остановлен пользователем');
+    showToast(`Парсер остановлен (${parserId})`, 'info');
+  } catch(e) {
+    showToast(`Ошибка отмены: ${e.message}`, 'error');
+  }
+}
+
+const STATUS_LABELS = { idle:'Ожидание', running:'Запущен', done:'Готово', error:'Ошибка', cancelled:'Отменено' };
 function setStatus(parserId, status) {
   const el = document.getElementById(`status-${parserId}`);
-  if (!el) return;
-  el.className  = `status-pill status-${status}`;
-  el.textContent = STATUS_LABELS[status] || status;
+  if (el) {
+    el.className  = `status-pill status-${status}`;
+    el.textContent = STATUS_LABELS[status] || status;
+  }
+  // Show cancel button only while running
+  const cancelBtn = document.getElementById(`cancel-btn-${parserId}`);
+  if (cancelBtn) cancelBtn.style.display = status === 'running' ? '' : 'none';
 }
 function clearLog(parserId) {
   const el = document.getElementById(`log-${parserId}`);

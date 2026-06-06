@@ -228,6 +228,8 @@ body::before {
 .status-running { background: rgba(59,224,138,0.15); color: var(--green); animation: pulse-status 1.5s infinite; }
 .status-done    { background: rgba(59,224,138,0.12); color: var(--green); }
 .status-error   { background: rgba(255,95,95,0.15); color: var(--red); }
+.status-cancelled { background: rgba(255,165,0,0.15); color: #f59e0b; }
+
 @keyframes pulse-status {
   0%,100% { opacity: 1; } 50% { opacity: 0.5; }
 }

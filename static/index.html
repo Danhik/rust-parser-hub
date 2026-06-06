@@ -72,6 +72,7 @@
         </div>
         <div class="card-actions">
           <button class="btn btn-primary" onclick="runParser('steam_market')">▶ Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-steam_market" onclick="cancelParser('steam_market')" style="display:none;color:var(--red);border-color:var(--red);">⏹ Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('steam_market')">Лог</button>
         </div>
         <div class="card-log" id="log-steam_market"></div>
@@ -104,7 +105,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('steam_priceoverview')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('steam_priceoverview')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-steam_priceoverview" onclick="cancelParser('steam_priceoverview')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('steam_priceoverview')">Лог</button>
         </div>
         <div class="card-log" id="log-steam_priceoverview"></div>
@@ -135,7 +137,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('swapgg_site')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('swapgg_site')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-swapgg_site" onclick="cancelParser('swapgg_site')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('swapgg_site')">Лог</button>
         </div>
         <div class="card-log" id="log-swapgg_site"></div>
@@ -164,7 +167,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('swapgg_user')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('swapgg_user')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-swapgg_user" onclick="cancelParser('swapgg_user')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('swapgg_user')">Лог</button>
         </div>
         <div class="card-log" id="log-swapgg_user"></div>
@@ -195,7 +199,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('skinswap_site')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('skinswap_site')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-skinswap_site" onclick="cancelParser('skinswap_site')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('skinswap_site')">Лог</button>
         </div>
         <div class="card-log" id="log-skinswap_site"></div>
@@ -234,7 +239,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('skinswap_user')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('skinswap_user')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-skinswap_user" onclick="cancelParser('skinswap_user')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('skinswap_user')">Лог</button>
         </div>
         <div class="card-log" id="log-skinswap_user"></div>
@@ -267,7 +273,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('tradeit_site')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('tradeit_site')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-tradeit_site" onclick="cancelParser('tradeit_site')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('tradeit_site')">Лог</button>
         </div>
         <div class="card-log" id="log-tradeit_site"></div>
@@ -303,7 +310,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn btn-primary" onclick="runParser('tradeit_user')">▶ Запустить</button>
+          <button class="btn btn-primary" onclick="runParser('tradeit_user')">&#9654; Запустить</button>
+          <button class="btn btn-ghost btn-sm" id="cancel-btn-tradeit_user" onclick="cancelParser('tradeit_user')" style="display:none;color:var(--red);border-color:var(--red);">&#9209; Отмена</button>
           <button class="btn btn-ghost btn-sm" onclick="toggleLog('tradeit_user')">Лог</button>
         </div>
         <div class="card-log" id="log-tradeit_user"></div>
@@ -331,12 +339,23 @@
 
     <!-- Files list -->
     <div class="files-panel glass">
-      <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">📁 Доступные Excel файлы</span>
-        <button class="btn btn-ghost btn-sm" onclick="refreshFiles()">↻ Обновить</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <span style="font-size:0.82rem;font-weight:600;color:var(--text-muted);">📁 Доступные файлы</span>
+        <button class="btn btn-ghost btn-sm" onclick="refreshFiles();loadExternalFiles()">↻ Обновить</button>
       </div>
-      <div class="files-list" id="files-list">
-        <span style="color:var(--text-dim);font-size:0.78rem;">Загрузка...</span>
+      <div style="display:flex;gap:18px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:0.73rem;color:var(--blue);font-weight:600;margin-bottom:6px;">📊 Парсеры (xlsx)</div>
+          <div class="files-list" id="files-list">
+            <span style="color:var(--text-dim);font-size:0.78rem;">Загрузка...</span>
+          </div>
+        </div>
+        <div style="flex:1;min-width:200px;">
+          <div style="font-size:0.73rem;color:var(--green);font-weight:600;margin-bottom:6px;">📂 Внешние данные (csv)</div>
+          <div class="files-list" id="external-files-list">
+            <span style="color:var(--text-dim);font-size:0.78rem;">Загрузка...</span>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -346,7 +365,7 @@
         <div class="config-panel-title"><span style="color:var(--blue);">📦</span> Откуда (площадка отдаёт)</div>
         <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">Инвентарь сайта — по этой цене ты покупаешь / берёшь предмет</p>
         <div class="param-group">
-          <label class="param-label">Excel файл источника</label>
+          <label class="param-label">Файл источника (xlsx или csv)</label>
           <select class="field-select" id="source-file" style="padding:8px 11px;width:100%;"></select>
         </div>
         <div class="param-group" style="margin-top:10px;">
@@ -360,7 +379,7 @@
         <div class="config-panel-title"><span style="color:var(--green);">👤</span> Куда (площадка принимает)</div>
         <p style="font-size:0.72rem;color:var(--text-dim);margin-bottom:10px;">Инвентарь пользователя — по этой цене площадка берёт предмет у тебя</p>
         <div class="param-group">
-          <label class="param-label">Excel файл назначения</label>
+          <label class="param-label">Файл назначения (xlsx или csv)</label>
           <select class="field-select" id="dest-file" style="padding:8px 11px;width:100%;"></select>
         </div>
         <div class="param-group" style="margin-top:10px;">

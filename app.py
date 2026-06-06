@@ -18,17 +18,19 @@ from openpyxl import Workbook, load_workbook
 
 BASE_DIR           = Path(__file__).parent
 PARSERS_DIR        = BASE_DIR / "parsers"          # parser scripts
-CHROME_DIR         = BASE_DIR / "chrome_profiles"  # chrome profile folders
 DATA_DIR           = BASE_DIR / "data"             # excel outputs
 SDA_DIR            = BASE_DIR / "sda_profiles"     # SDA .maFile folders/files
 STATIC_DIR         = BASE_DIR / "static"
 CONFIG_FILE        = BASE_DIR / "config.json"
+EXTERNAL_DATA_DIR  = BASE_DIR / "external_data"   # external CSV catalogs (avan, lisskins…)
+CHROME_DIR         = BASE_DIR / "chrome_profiles"  # chrome profile folders
+
 
 PARSERS_DIR.mkdir(exist_ok=True)
 CHROME_DIR.mkdir(exist_ok=True)
 DATA_DIR.mkdir(exist_ok=True)
 SDA_DIR.mkdir(exist_ok=True)
-
+EXTERNAL_DATA_DIR.mkdir(exist_ok=True)
 # ---------------------------------------------------------------------------
 # Config
 # ---------------------------------------------------------------------------
@@ -194,6 +196,51 @@ def read_excel_items(filepath: str) -> List[Dict[str, Any]]:
         return items
     except Exception:
         return []
+
+
+def read_csv_items(filepath: str) -> List[Dict[str, Any]]:
+    """Read semicolon-separated CSV (Avan / LisSkins format).
+
+    Supports:
+    - Optional header row (auto-detected: if cell 2 in row 1 is not numeric → header)
+    - Quoted field values (strips leading/trailing quotes)
+    - Comma as decimal separator  (e.g. '12,34' → 12.34)
+    """
+    import csv
+    items: List[Dict[str, Any]] = []
+    try:
+        with open(filepath, encoding="utf-8", errors="replace", newline="") as fh:
+            reader = csv.reader(fh, delimiter=";")
+            raw_rows = [row for row in reader if row]
+        if not raw_rows:
+            return []
+
+        def _strip(s: str) -> str:
+            return s.strip().strip('"').strip("'").strip()
+
+        # Auto-detect header: if 2nd cell of row 0 is non-numeric it's a header
+        first_price_str = _strip(raw_rows[0][1]) if len(raw_rows[0]) > 1 else ""
+        has_header = _parse_price(first_price_str.replace(",", ".")) is None
+        data_rows = raw_rows[1:] if has_header else raw_rows
+
+        for row in data_rows:
+            if len(row) < 2:
+                continue
+            name  = _strip(row[0])
+            price = _parse_price(_strip(row[1]).replace(",", "."))
+            if name and price is not None and price > 0:
+                items.append({"name": name, "price": price})
+    except Exception:
+        pass
+    return items
+
+
+def read_items(filepath: str) -> List[Dict[str, Any]]:
+    """Unified reader: dispatches to Excel or CSV reader based on file extension."""
+    ext = Path(filepath).suffix.lower()
+    if ext == ".csv":
+        return read_csv_items(filepath)
+    return read_excel_items(filepath)
 
 # ---------------------------------------------------------------------------
 # Static
@@ -410,6 +457,7 @@ def list_tasks():
 
 
 @app.route("/api/kill-task/<task_id>", methods=["POST"])
+@app.route("/api/cancel-task/<task_id>", methods=["POST"])
 def kill_task(task_id):
     with tasks_lock:
         task = tasks.get(task_id)
@@ -422,6 +470,9 @@ def kill_task(task_id):
                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         except Exception:
             pass
+    with tasks_lock:
+        if task_id in tasks:
+            tasks[task_id]["status"] = "cancelled"
     return jsonify({"ok": True})
 
 # ---------------------------------------------------------------------------
@@ -436,6 +487,24 @@ def list_files():
             files.append({"name": f.name, "path": str(f),
                            "size": f.stat().st_size, "modified": f.stat().st_mtime})
     files.sort(key=lambda x: x["modified"], reverse=True)
+    return jsonify(files)
+
+
+
+@app.route("/api/list-external-files")
+def list_external_files():
+    """List CSV files in external_data/ directory."""
+    files = []
+    if EXTERNAL_DATA_DIR.exists():
+        for f in EXTERNAL_DATA_DIR.iterdir():
+            if f.suffix.lower() == ".csv":
+                files.append({
+                    "name": f.name,
+                    "path": str(f),
+                    "size": f.stat().st_size,
+                    "modified": f.stat().st_mtime,
+                })
+    files.sort(key=lambda x: x["name"])
     return jsonify(files)
 
 
@@ -463,7 +532,7 @@ def download_file(filename):
 def build_links():
     body = request.json or {}
 
-    def resolve(name_or_path: str) -> Optional[str]:
+    def _resolve(name_or_path: str) -> Optional[str]:
         if not name_or_path:
             return None
         p = Path(name_or_path)
@@ -472,25 +541,26 @@ def build_links():
         c = DATA_DIR / name_or_path
         if c.exists():
             return str(c)
+        e = EXTERNAL_DATA_DIR / name_or_path
+        if e.exists():
+            return str(e)
         return None
 
-    source_file = resolve(body.get("source_file", ""))  # площадка отдаёт
-    dest_file   = resolve(body.get("dest_file",   ""))  # площадка принимает
+    source_file = _resolve(body.get("source_file", ""))
+    dest_file   = _resolve(body.get("dest_file",   ""))
 
     if not source_file:
         return jsonify({"error": "source_file не найден"}), 400
     if not dest_file:
         return jsonify({"error": "dest_file не найден"}), 400
 
-    # Optional multipliers (default 1.0 = no adjustment)
-    source_coeff = float(body.get("source_coeff", 1.0))  # e.g. 1.05 if +5% fee when buying
-    dest_coeff   = float(body.get("dest_coeff",   1.0))  # e.g. 0.95 if platform takes 5% on accept
+    source_coeff = float(body.get("source_coeff", 1.0))
+    dest_coeff   = float(body.get("dest_coeff",   1.0))
+    min_profit   = float(body.get("min_profit", 0))
+    min_roi      = float(body.get("min_roi",    0))
 
-    min_profit = float(body.get("min_profit", 0))
-    min_roi    = float(body.get("min_roi",    0))
-
-    source_items = read_excel_items(source_file)  # what platform sells
-    dest_items   = read_excel_items(dest_file)    # what platform accepts from user
+    source_items = read_items(source_file)
+    dest_items   = read_items(dest_file)
 
     if not source_items:
         return jsonify({"error": "Нет данных в source_file (нужны колонки Name и Price)"}), 400

@@ -2,6 +2,10 @@
 __pycache__/
 *.pyc
 
+# Scratch / temporary test scripts
+scratch/
+
+
 # Local data & outputs
 data/
 *.xlsx
